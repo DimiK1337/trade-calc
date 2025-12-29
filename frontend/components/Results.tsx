@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Heading, Text } from "@chakra-ui/react";
-import type { CalcResult, SymbolKey } from "../lib/types";
+import type { CalcResult, SymbolKey } from "@/lib/types";
 
 interface ResultsProps {
   symbol: SymbolKey;

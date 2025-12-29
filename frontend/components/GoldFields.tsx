@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Input, SimpleGrid, Stack, Text } from "@chakra-ui/react";
-import type { CalcInputs } from "../lib/types";
+import type { CalcInputs } from "@/lib/types";
 
 interface GoldFieldsProps {
   goldContractSize: number;

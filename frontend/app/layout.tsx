@@ -1,11 +1,23 @@
-import Providers from "./providers";
+import { Provider } from "@/components/ui/provider"
+import { Box } from "@chakra-ui/react"
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import NavBar from "@/components/NavBar"
+interface RootLayoutProps {
+  children: React.ReactNode
+}
+
+export default function RootLayout(props: RootLayoutProps) {
+  const { children } = props
   return (
-    <Providers>{children}</Providers>
-  );
+    <html suppressHydrationWarning lang="en">
+      <body>
+        
+          
+          <Provider>
+            <NavBar />
+            {children}
+          </Provider>
+      </body>
+    </html>
+  )
 }

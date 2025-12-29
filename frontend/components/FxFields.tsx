@@ -1,8 +1,13 @@
 "use client";
 
-import { Box, Input, SimpleGrid, Stack, Text } from "@chakra-ui/react";
-import type { CalcInputs } from "../lib/types";
+import type { CalcInputs } from "@/lib/types";
 
+import { Box, 
+  Input, 
+  SimpleGrid, 
+  Stack, 
+  Text 
+} from "@chakra-ui/react";
 
 interface FxFieldsProps {
   symbol: CalcInputs["symbol"];

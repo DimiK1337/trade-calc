@@ -12,23 +12,14 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-import type { CalcInputs, CalcResult, SymbolKey } from "../lib/types";
-import { computePositionSize } from "../lib/calc";
-import FxFields from "./FxFields";
-import GoldFields from "./GoldFields";
-import Results from "./Results";
+import type { CalcInputs, CalcResult, SymbolKey } from "@/lib/types";
+import { computePositionSize } from "@/lib/calc";
+import FxFields from "@/components/FxFields";
+import GoldFields from "@/components/GoldFields";
+import Results from "@/components/Results";
+import { DEFAULT_CALCULATOR } from "@/lib/defaults/calculator";
 
-const DEFAULTS: CalcInputs = {
-  accountCcy: "CHF",
-  balance: 5000,
-  riskPct: 0.5,
-  symbol: "XAUUSD",
-  stopDistance: 20,
-  usdchfRate: 0.9,
-  lotStep: 0.01,
-  goldContractSize: 100,
-  goldTickSize: 0.01,
-};
+const DEFAULTS = DEFAULT_CALCULATOR
 
 export default function CalculatorForm() {
   const [inputs, setInputs] = useState<CalcInputs>(DEFAULTS);
