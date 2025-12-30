@@ -1,0 +1,5 @@
+dev.db
+*.db
+
+# The example one is allowed to exist
+.env

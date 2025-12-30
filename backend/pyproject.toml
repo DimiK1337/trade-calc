@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = ""
+authors = ["Dimitriy Kruglikov <dimitriy.kruglikov@gmail.com>"]
+readme = "README.md"
+
+[virtualenvs]
+in-project = true
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = {extras = ["standard"], version = "^0.128.0"}
+uvicorn = "^0.40.0"
+sqlalchemy = "^2.0.45"
+alembic = "^1.17.2"
+pydantic-settings = "^2.12.0"
+python-jose = "^3.5.0"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-multipart = "^0.0.21"
+email-validator = "^2.3.0"
+bcrypt = "4.0.1"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.12.0"
+ruff = "^0.14.10"
+pytest = "^9.0.2"
+httpx = "^0.28.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
