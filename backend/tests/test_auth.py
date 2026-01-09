@@ -2,22 +2,34 @@ from fastapi.testclient import TestClient
 
 
 def register_user(client: TestClient, email: str, username: str, password: str):
-    res = client.post(
+    return client.post(
         "/api/v1/auth/register",
-        json={"email": email, "password": password, "username": username,},
+        json={"email": email, "password": password, "username": username},
     )
 
-    print(f"RES: {res = }")
 
-    return res
+def login_user(
+    client: TestClient,
+    *,
+    password: str,
+    email: str | None = None,
+    username: str | None = None,
+):
+    """
+    OAuth2PasswordRequestForm uses a field named "username" for the identifier.
+    We treat that identifier as either email or username.
 
+    Rules:
+    - If neither email nor username provided -> ValueError
+    - If both provided -> email wins
+    """
+    identifier = email or username
+    if not identifier:
+        raise ValueError("Provide either email or username (non-empty).")
 
-def login_user(client: TestClient, email: str, password: str):
-    # OAuth2PasswordRequestForm: expects application/x-www-form-urlencoded
     return client.post(
         "/api/v1/auth/token",
-        data={"username": email, "password": password},
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        data={"username": identifier, "password": password},
     )
 
 
@@ -29,7 +41,6 @@ def test_register_success(client: TestClient):
     assert "id" in body
     assert body["email"] == "dimi@example.com"
     assert body["username"] == "dimi"
-    # Ensure we do NOT leak password hash
     assert "password" not in body
     assert "password_hash" not in body
 
@@ -42,11 +53,24 @@ def test_register_duplicate_email_fails(client: TestClient):
     assert r2.status_code in (400, 409), r2.text
 
 
-def test_login_success_returns_token(client: TestClient):
+def test_login_with_email_success_returns_token(client: TestClient):
     reg = register_user(client, "dimi@example.com", "dimi", "test1234")
     assert reg.status_code == 200, reg.text
 
-    login = login_user(client, "dimi@example.com", "test1234")
+    login = login_user(client, email="dimi@example.com", password="test1234")
+    assert login.status_code == 200, login.text
+    body = login.json()
+
+    assert "access_token" in body
+    assert body.get("token_type") == "bearer"
+
+
+def test_login_with_username_success_returns_token(client: TestClient):
+    reg = register_user(client, "dimi@example.com", "dimi", "test1234")
+    assert reg.status_code == 200, reg.text
+
+    login = login_user(client, username="dimi", password="test1234")
+    print(f"STDOUT {login = }")
     assert login.status_code == 200, login.text
     body = login.json()
 
@@ -58,7 +82,7 @@ def test_login_wrong_password_fails(client: TestClient):
     reg = register_user(client, "dimi@example.com", "dimi", "test1234")
     assert reg.status_code == 200, reg.text
 
-    login = login_user(client, "dimi@example.com", "wrong-password")
+    login = login_user(client, email="dimi@example.com", password="wrong-password")
     assert login.status_code == 401, login.text
 
 
@@ -71,7 +95,7 @@ def test_me_with_token_returns_user(client: TestClient):
     reg = register_user(client, "dimi@example.com", "dimi", "test1234")
     assert reg.status_code == 200, reg.text
 
-    login = login_user(client, "dimi@example.com", "test1234")
+    login = login_user(client, email="dimi@example.com", password="test1234")
     assert login.status_code == 200, login.text
     token = login.json()["access_token"]
 
