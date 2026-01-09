@@ -7,6 +7,8 @@ from app.models.user import User
 def get_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
 
+def get_by_username(db: Session, username: str) -> User | None:
+    return db.query(User).filter(User.username == username).first()
 
 def create(db: Session, email: str, username: str, password: str) -> User:
     print(f"In crud/user.py, {email = } {username = } {password = }")

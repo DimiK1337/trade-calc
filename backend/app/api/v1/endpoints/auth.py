@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import create_access_token, verify_password
 from app.core.deps import get_current_user, get_db
-from app.crud.user import get_by_email, create as create_user
+from app.crud.user import get_by_email, create as create_user, get_by_username
 from app.schemas.user import Token, UserCreate, UserOut
 from app.models.user import User
 
@@ -27,8 +27,10 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/token", response_model=Token)
 def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    identifier = form.username.strip()
+
     # OAuth2PasswordRequestForm uses "username" field for email
-    user = get_by_email(db, form.username)
+    user = get_by_email(db, identifier) or get_by_username(db, identifier)
     if not user or not verify_password(form.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")

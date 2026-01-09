@@ -14,5 +14,14 @@ class Settings(BaseSettings):
     # comma-separated list
     CORS_ORIGINS: str = "http://localhost:3000"
 
+    # Bootstrap controls
+    REQUIRE_ADMIN_ON_STARTUP: bool = True
+    BOOTSTRAP_ROOT_ADMIN: bool = True  # if True, create admin if missing
+
+    # Admin config 
+    ROOT_ADMIN_EMAIL: str | None = None
+    ROOT_ADMIN_USERNAME: str | None = None
+    ROOT_ADMIN_PASSWORD: str | None = None
+
 
 settings = Settings()
