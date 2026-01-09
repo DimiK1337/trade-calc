@@ -1,5 +1,5 @@
-import { Provider } from "@/components/ui/provider"
-import { Box } from "@chakra-ui/react"
+import { Provider } from "@/components/ui/provider";
+import { AuthProvider } from "@/app/auth/AuthProvider";
 
 import NavBar from "@/components/NavBar"
 interface RootLayoutProps {
@@ -11,12 +11,12 @@ export default function RootLayout(props: RootLayoutProps) {
   return (
     <html suppressHydrationWarning lang="en">
       <body>
-        
-          
-          <Provider>
+        <Provider>
+          <AuthProvider>
             <NavBar />
             {children}
-          </Provider>
+          </AuthProvider>
+        </Provider>
       </body>
     </html>
   )
