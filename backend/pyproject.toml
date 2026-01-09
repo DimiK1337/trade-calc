@@ -1,9 +1,10 @@
 [tool.poetry]
-name = "backend"
+name = "trade-calc-backend"
 version = "0.1.0"
 description = ""
 authors = ["Dimitriy Kruglikov <dimitriy.kruglikov@gmail.com>"]
 readme = "README.md"
+packages = [{ include = "app" }]
 
 [virtualenvs]
 in-project = true
@@ -31,3 +32,8 @@ httpx = "^0.28.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+dev = "app.scripts:dev"
+prod = "app.scripts:prod"
+
