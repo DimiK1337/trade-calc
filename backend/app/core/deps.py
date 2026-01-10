@@ -18,20 +18,34 @@ def get_db():
         db.close()
 
 
+def parse_user_id(sub: str) -> int:
+    try:
+        return int(sub)
+    except (ValueError, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+        )
+
+
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALG])
         sub = payload.get("sub")
         if not sub:
             raise ValueError("Missing subject")
-    except (JWTError, ValueError):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        # TODO: Make a function to extract user id, in case I switch from ints to UUID or something
+        user_id = parse_user_id(sub)
+    except (JWTError, ValueError, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
-    user = db.query(User).filter(User.email == sub).first()
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
+
 
 def require_admin(current_user: User = Depends(get_current_user)) -> User:
     if not getattr(current_user, "is_admin", False):

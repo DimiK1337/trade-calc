@@ -35,7 +35,7 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    token = create_access_token(subject=user.email)
+    token = create_access_token(subject=str(user.id))
     return Token(access_token=token)
 
 
