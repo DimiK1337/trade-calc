@@ -1,3 +1,5 @@
+# app/db/migrations_check.py
+
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory

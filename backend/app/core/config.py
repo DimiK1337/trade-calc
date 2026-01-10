@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+# app/core/config.py
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # ANY SETTINGS CHANGED IN THE .env file need to be changed here

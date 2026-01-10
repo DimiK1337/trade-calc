@@ -1,4 +1,5 @@
 # app/db/session.py
+
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import Engine

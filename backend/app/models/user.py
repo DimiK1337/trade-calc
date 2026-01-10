@@ -1,3 +1,5 @@
+# app/models/user.py
+
 from sqlalchemy import DateTime, Integer, String, Boolean, func
 from sqlalchemy.orm import Mapped, mapped_column
 

@@ -1,3 +1,5 @@
+# app/db/init_db.py
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -27,6 +29,7 @@ def bootstrap_root_admin() -> None:
         and settings.ROOT_ADMIN_USERNAME
         and settings.ROOT_ADMIN_PASSWORD
     ):
+        print("NO ADMIN CREDENTIALS IN ENV/SETTINGS")
         return
 
     db: Session = SessionLocal()

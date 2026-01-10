@@ -1,0 +1,2 @@
+# app/models/trade.py
+

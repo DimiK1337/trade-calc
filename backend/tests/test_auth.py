@@ -1,5 +1,6 @@
-from fastapi.testclient import TestClient
+# tests/test_auth.py
 
+from fastapi.testclient import TestClient
 
 def register_user(client: TestClient, email: str, username: str, password: str):
     return client.post(
