@@ -9,21 +9,6 @@ from app.db.init_db import bootstrap_root_admin, ensure_admin_exists
 from app.db.migrations_check import ensure_db_is_at_head
 
 
-app = FastAPI(title="Trade Calc API")
-
-origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins or ["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(v1_router)
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # --- Startup (fail fast) ---
@@ -39,6 +24,20 @@ async def lifespan(app: FastAPI):
 
     # --- Shutdown (optional cleanup) ---
     # nothing needed for now
+
+app = FastAPI(title="Trade Calc API", lifespan=lifespan)
+
+origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins or ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(v1_router)
 
 
 @app.get("/")
