@@ -43,6 +43,32 @@ export async function fetchMe(): Promise<UserOut> {
   return res.data;
 }
 
+export async function updateProfile(params: {
+  email?: string;
+  username?: string;
+  current_password?: string;
+}): Promise<UserOut> {
+  const res = await api.patch<UserOut>("/api/v1/profile", params);
+  return res.data;
+}
+
+export async function changeMyPassword(params: {
+  current_password: string;
+  new_password: string;
+}): Promise<void> {
+  await api.post("/api/v1/profile/password", params);
+}
+
+export async function deleteMyAccount(params: {
+  current_password: string;
+}): Promise<void> {
+  await api.request({
+    method: "DELETE",
+    url: "/api/v1/profile",
+    data: params,
+  });
+}
+
 // ---------- helpers ----------
 
 export function storeToken(token: string) {

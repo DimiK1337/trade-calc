@@ -81,6 +81,11 @@ export default function NavBar() {
               >
                 Logout
               </Box>
+              <NextLink href="/profile" style={{ textDecoration: "none" }}>
+                <Box px={3} py={2} rounded="md" borderWidth="1px" opacity={0.85}>
+                  Profile
+                </Box>
+              </NextLink>
             </Flex>
           ) : (
             <Flex gap={2}>

@@ -17,6 +17,7 @@ type AuthContextValue = {
   login: (params: { identifier: string; password: string }) => Promise<void>;
   register: (params: { email: string; username: string; password: string }) => Promise<void>;
   logout: () => void;
+  refreshMe: () => Promise<void>; // TODO: This is for MVP, in prod shouldn't have to send an extra request to view updates on UI
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -74,9 +75,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  const refreshMe = useCallback(async () => {
+    const token = getToken();
+    if (!token) {
+      setUser(null);
+      return;
+    }
+    const me = await fetchMe();
+    setUser(me);
+  }, []);
+
+
   const value = useMemo(
-    () => ({ user, isLoading, login, register, logout }),
-    [user, isLoading, login, register, logout]
+    () => ({ user, isLoading, login, register, logout, refreshMe }),
+    [user, isLoading, login, register, logout, refreshMe]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
