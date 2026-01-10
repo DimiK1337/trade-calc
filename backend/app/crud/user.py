@@ -1,3 +1,5 @@
+# app/crud/user.py
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password
@@ -5,10 +7,13 @@ from app.models.user import User
 
 
 def get_by_email(db: Session, email: str) -> User | None:
-    return db.query(User).filter(User.email == email).first()
+    return db.execute(select(User).where(User.email == email)).scalars().first()
 
 def get_by_username(db: Session, username: str) -> User | None:
-    return db.query(User).filter(User.username == username).first()
+    return db.execute(select(User).where(User.username == username)).scalars().first()
+
+def get_by_id(db: Session, id: str) -> User | None:
+    return db.execute(select(User).where(User.id == id)).scalars().first()
 
 def create(db: Session, email: str, username: str, password: str) -> User:
     print(f"In crud/user.py, {email = } {username = } {password = }")
