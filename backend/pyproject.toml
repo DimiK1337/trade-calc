@@ -33,6 +33,7 @@ httpx = "^0.28.1"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+
 [tool.poetry.scripts]
 dev = "app.scripts:dev"
 prod = "app.scripts:prod"
