@@ -1,7 +1,9 @@
+// lib/auth/client.ts
+
 import { api, TOKEN_KEY } from "./client";
 
 export type UserOut = {
-  id: number;
+  id: string;
   email: string;
   username: string;
 };
