@@ -1,7 +1,7 @@
 # app/models/user.py
 
 from sqlalchemy import DateTime, Integer, String, Boolean, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.mixins.timestamps import TimestampMixin
@@ -15,3 +15,10 @@ class User(Base, TimestampMixin):
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="0")
+
+    trades = relationship(
+        "Trade",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

@@ -1,4 +1,4 @@
-# app/crud/trade.py
+# app/api/v1/endpoints/trade.py
 
 from __future__ import annotations
 
@@ -10,8 +10,6 @@ from app.schemas.trade import TradeCreate, TradeUpdate
 
 
 def create_trade(db: Session, *, user_id: int, payload: TradeCreate) -> Trade:
-    
-    # TODO: See if there is a better way to create the Trade ORM instance from the payload (using a dict and pasting it?)
     t = Trade(
         user_id=user_id,
 
@@ -76,8 +74,8 @@ def update_trade_for_user(db: Session, *, user_id: int, trade_id: str, payload: 
     trade = get_trade_for_user(db, user_id=user_id, trade_id=trade_id)
     if not trade:
         return None
-    
-    data = payload.model_dump(exclude_unset=True) # Used in PATCH requests
+
+    data = payload.model_dump(exclude_unset=True)
 
     if "status" in data and data["status"] is not None:
         data["status"] = data["status"].value
