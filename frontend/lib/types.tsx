@@ -1,3 +1,5 @@
+// lib/types.tsx
+
 export type SymbolKey = "XAUUSD" | "EURUSD" | "USDCHF" | "USDJPY";
 
 export type CalcInputs = {

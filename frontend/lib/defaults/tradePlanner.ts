@@ -1,3 +1,5 @@
+// lib/defaults/tradePlanner.ts
+
 import type { CalcInputs } from "../types";
 
 export type Direction = "LONG" | "SHORT";

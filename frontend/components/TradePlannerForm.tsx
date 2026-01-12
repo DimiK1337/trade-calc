@@ -9,6 +9,9 @@ import { computePositionSize } from "@/lib/calc";
 import { computeSLTP } from "@/lib/tradePlanner";
 import { DEFAULT_TRADE_PLANNER } from "@/lib/defaults/tradePlanner";
 
+import { type TradeCreate, createTrade, extractFastApiError } from "@/lib/trades";
+import { toaster } from "@/components/ui/toaster";
+
 
 import Results from "@/components/Results";
 import GoldFields from "@/components/GoldFields";
@@ -24,15 +27,19 @@ const DEFAULTS = DEFAULT_TRADE_PLANNER;
 
 
 export default function TradePlannerForm() {
+  const [error, setError] = useState<string | null>(null);
   const [inputs, setInputs] = useState<TradePlannerFormState>(DEFAULTS);
   const [sizeResult, setSizeResult] = useState<CalcResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+
+  const [saveToJournal, setSaveToJournal] = useState<boolean>(false)
+
 
   const isGold = inputs.symbol === "XAUUSD";
   const stopLabel = useMemo(
     () => (isGold ? "Stop distance (ticks)" : "Stop distance (pips)"),
     [isGold]
   );
+
 
   function update<K extends keyof TradePlannerFormState>(key: K, value: TradePlannerFormState[K]) {
     setInputs((prev) => ({ ...prev, [key]: value }));
@@ -115,6 +122,91 @@ export default function TradePlannerForm() {
 
     return totalRewardCHF;
   }, [sizeResult, plan, inputs.symbol, inputs.goldTickSize]);
+
+  // Below here is for saving planned trades to journal
+
+  async function addToJournal() {
+    setError(null);
+
+    // Button should already guard this, but keep it safe
+    if (!plan || !sizeResult) return;
+
+    // TradeInputs required by BE
+    const stopUnit = isGold ? "TICKS" : "PIPS";
+
+    const payload: TradeCreate = {
+      inputs: {
+        balance_chf: Number(inputs.balance),
+        risk_pct: Number(inputs.riskPct),
+
+        symbol: inputs.symbol,
+        direction: inputs.direction,
+        entry_price: Number(inputs.entryPrice),
+
+        stop_distance: Number(inputs.stopDistance),
+        stop_unit: stopUnit,
+
+        tp_r_multiple: Number(inputs.rewardToRisk),
+        lot_step: Number(inputs.lotStep),
+
+        usdchf_rate: Number(inputs.usdchfRate),
+
+        // Only meaningful for gold, but schema allows null for FX
+        tick_size: isGold ? Number(inputs.goldTickSize) : null,
+        contract_size: isGold ? Number(inputs.goldContractSize) : null,
+      },
+
+      outputs: {
+        sl_price: Number(plan.slPrice),
+        tp_price: Number(plan.tpPrice),
+
+        risk_distance_price: Number(plan.riskDistancePrice),
+        reward_distance_price: Number(plan.rewardDistancePrice),
+
+        lots: Number(sizeResult.lots),
+        risk_chf: Number(sizeResult.riskMoneyCHF),
+
+        // You already compute rewardCHF (memo). If somehow null, fall back to R-multiple * risk.
+        reward_chf:
+          rewardCHF != null
+            ? Number(rewardCHF)
+            : Number(sizeResult.riskMoneyCHF) * Number(inputs.rewardToRisk),
+
+        reward_to_risk: Number(inputs.rewardToRisk),
+
+        value_per_unit_1lot_chf: Number(sizeResult.valuePerUnitPerLotCHF),
+        stop_value_1lot_chf: Number(sizeResult.stopValuePerLotCHF),
+        exposure_units: Number(sizeResult.exposureUnits),
+      },
+
+      journal: {
+        status: "PLANNED",
+      },
+    };
+
+    try {
+      setSaveToJournal(true);
+
+      const created = await createTrade(payload);
+
+      toaster.create({
+        title: "Trade added to journal",
+        description: `Saved as ${created.id}`,
+        type: "success",
+      });
+
+      // keep inputs by default (matches your desire to reuse updated balance etc.)
+      // If you later want: setSizeResult(null) or reset form, we can add it.
+    } catch (e: unknown) {
+      toaster.create({
+        title: "Failed to add trade",
+        description: extractFastApiError(e),
+        type: "error",
+      });
+    } finally {
+      setSaveToJournal(false);
+    }
+  }
 
   return (
     <Stack gap={4}>
@@ -232,6 +324,12 @@ export default function TradePlannerForm() {
           <Separator />
 
           <Button onClick={calculate}>Calculate size + plan</Button>
+
+          {plan !== null && sizeResult !== null ? (
+            <Button onClick={addToJournal} loading={saveToJournal} disabled={saveToJournal} backgroundColor={"#02dede"}>
+              Add to Journal
+            </Button>
+          ) : null}
 
           {error && (
             <Box borderWidth="1px" borderColor="red.400" rounded="lg" p={3}>

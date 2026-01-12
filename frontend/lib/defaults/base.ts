@@ -1,3 +1,5 @@
+// lib/defaults/base.ts
+
 import type { CalcInputs } from "../types";
 
 /**

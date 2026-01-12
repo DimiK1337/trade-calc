@@ -1,3 +1,5 @@
+// lib/tradePlanner/index.ts
+
 import type { CalcInputs, SymbolKey } from "@/lib/types";
 
 import type { Direction } from "@/lib/defaults/tradePlanner";
