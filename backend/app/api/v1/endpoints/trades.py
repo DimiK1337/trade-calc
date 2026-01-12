@@ -24,6 +24,7 @@ from app.services.storage.base import TradeImageStore
 from app.services.storage.image_processing import ImageTooLargeError, InvalidImageError, compress_chart_image
 
 from app.models.user import User
+from app.models.trade import Trade
 
 from app.schemas.trade import (
     TradeCreate, TradeDetailOut, TradeSummaryOut, 
@@ -33,7 +34,7 @@ from app.schemas.trade import (
 router = APIRouter(prefix="/trades", tags=["trades"])
 
 
-def _to_detail_out(t) -> TradeDetailOut:
+def _to_detail_out(t: Trade) -> TradeDetailOut:
     return TradeDetailOut(
         id=t.id,
         user_id=t.user_id,
@@ -77,14 +78,16 @@ def _to_detail_out(t) -> TradeDetailOut:
     )
 
 
-def _to_summary_out(t) -> TradeSummaryOut:
+def _to_summary_out(t: Trade, has_charts: bool) -> TradeSummaryOut:
     return TradeSummaryOut(
         id=t.id,
         created_at=t.created_at,
         symbol=t.symbol,
         direction=t.direction,
         status=t.status,
-        has_charts=t.has_charts,
+
+        has_charts=has_charts,
+
         outputs=TradeOutputs(
             sl_price=t.sl_price,
             tp_price=t.tp_price,
@@ -116,8 +119,9 @@ def list_my_trades(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    trades = list_trades_for_user(db, user_id=current_user.id)
-    return [_to_summary_out(t) for t in trades]
+    rows = list_trades_for_user_with_chart_flag(db, user_id=current_user.id)
+    return [_to_summary_out(t, has_chart) for (t, has_chart) in rows]
+
 
 
 @router.get("/{trade_id}", response_model=TradeDetailOut)

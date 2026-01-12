@@ -9,7 +9,7 @@ from app.models.trade import Trade
 from app.schemas.trade import TradeCreate, TradeUpdate
 
 
-def create_trade(db: Session, *, user_id: int, payload: TradeCreate) -> Trade:
+def create_trade(db: Session, *, user_id: str, payload: TradeCreate) -> Trade:
     t = Trade(
         user_id=user_id,
 
@@ -54,7 +54,13 @@ def create_trade(db: Session, *, user_id: int, payload: TradeCreate) -> Trade:
     return t
 
 
-def list_trades_for_user(db: Session, *, user_id: int, limit: int = 50, offset: int = 0) -> list[Trade]:
+def list_trades_for_user(
+    db: Session,
+    *,
+    user_id: str,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[Trade]:
     stmt = (
         select(Trade)
         .where(Trade.user_id == user_id)
@@ -65,12 +71,13 @@ def list_trades_for_user(db: Session, *, user_id: int, limit: int = 50, offset: 
     return list(db.scalars(stmt).all())
 
 
-def get_trade_for_user(db: Session, *, user_id: int, trade_id: str) -> Trade | None:
+
+def get_trade_for_user(db: Session, *, user_id: str, trade_id: str) -> Trade | None:
     stmt = select(Trade).where(Trade.id == trade_id, Trade.user_id == user_id)
     return db.scalars(stmt).first()
 
 
-def update_trade_for_user(db: Session, *, user_id: int, trade_id: str, payload: TradeUpdate) -> Trade | None:
+def update_trade_for_user(db: Session, *, user_id: str, trade_id: str, payload: TradeUpdate) -> Trade | None:
     trade = get_trade_for_user(db, user_id=user_id, trade_id=trade_id)
     if not trade:
         return None

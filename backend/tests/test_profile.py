@@ -2,7 +2,7 @@
 
 from fastapi.testclient import TestClient
 
-from tests.utils.auth import register_user, get_token, auth_headers, login_user_raw
+from tests.utils.auth import register_user, get_token, auth_headers, login_user_raw, login_user
 
 
 def test_profile_get_requires_auth(client: TestClient):

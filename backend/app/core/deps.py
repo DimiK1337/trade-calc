@@ -20,14 +20,10 @@ def get_db():
         db.close()
 
 
-def parse_user_id(sub: str) -> int:
-    try:
-        return int(sub)
-    except (ValueError, TypeError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        )
+def parse_user_id(sub: str) -> str:
+    if not sub or not isinstance(sub, str):
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return sub
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:

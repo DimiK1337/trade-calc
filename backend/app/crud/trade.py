@@ -13,7 +13,7 @@ from app.schemas.trade import TradeCreate, TradeUpdate
 
 CHART_KIND = "CHART"
 
-def create_trade(db: Session, *, user_id: int, payload: TradeCreate) -> Trade:
+def create_trade(db: Session, *, user_id: str, payload: TradeCreate) -> Trade:
     
     # TODO: See if there is a better way to create the Trade ORM instance from the payload (using a dict and pasting it?)
     t = Trade(
@@ -60,7 +60,7 @@ def create_trade(db: Session, *, user_id: int, payload: TradeCreate) -> Trade:
     return t
 
 
-def list_trades_for_user(db: Session, *, user_id: int, limit: int = 50, offset: int = 0) -> list[Trade]:
+def list_trades_for_user(db: Session, *, user_id: str, limit: int = 50, offset: int = 0) -> list[Trade]:
     stmt = (
         select(Trade)
         .where(Trade.user_id == user_id)
@@ -71,12 +71,12 @@ def list_trades_for_user(db: Session, *, user_id: int, limit: int = 50, offset: 
     return list(db.scalars(stmt).all())
 
 
-def get_trade_for_user(db: Session, *, user_id: int, trade_id: str) -> Trade | None:
+def get_trade_for_user(db: Session, *, user_id: str, trade_id: str) -> Trade | None:
     stmt = select(Trade).where(Trade.id == trade_id, Trade.user_id == user_id)
     return db.scalars(stmt).first()
 
 
-def update_trade_for_user(db: Session, *, user_id: int, trade_id: str, payload: TradeUpdate) -> Trade | None:
+def update_trade_for_user(db: Session, *, user_id: str, trade_id: str, payload: TradeUpdate) -> Trade | None:
     trade = get_trade_for_user(db, user_id=user_id, trade_id=trade_id)
     if not trade:
         return None
@@ -94,7 +94,13 @@ def update_trade_for_user(db: Session, *, user_id: int, trade_id: str, payload: 
     db.refresh(trade)
     return trade
 
-def list_trades_for_user_with_chart_flag(db: Session, *, user_id: int, limit: int = 50, offset: int = 0):
+def list_trades_for_user_with_chart_flag(
+    db: Session,
+    *,
+    user_id: str,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[tuple[Trade, bool]]:
     has_chart_expr = exists(
         select(literal(1)).where(
             TradeImage.trade_id == Trade.id,
@@ -109,4 +115,5 @@ def list_trades_for_user_with_chart_flag(db: Session, *, user_id: int, limit: in
         .limit(limit)
         .offset(offset)
     )
-    return db.execute(stmt).all()  # List[Tuple[Trade, bool]]
+
+    return db.execute(stmt).tuples().all()

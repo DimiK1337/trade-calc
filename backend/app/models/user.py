@@ -1,5 +1,6 @@
 # app/models/user.py
 
+import uuid
 from sqlalchemy import DateTime, Integer, String, Boolean, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -10,7 +11,11 @@ from app.models.mixins.timestamps import TimestampMixin
 class User(Base, TimestampMixin):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True, nullable=False)
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
