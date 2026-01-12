@@ -78,7 +78,7 @@ class TradeUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     # limited fields only
-    note: Optional[str] = Field(default=None, max_length=2000)
+    note: Optional[str] = Field(default=None, max_length=5000)
     status: Optional[TradeStatus] = None
     opened_at: Optional[datetime] = None
     closed_at: Optional[datetime] = None
@@ -94,6 +94,7 @@ class TradeSummaryOut(BaseModel):
     symbol: str
     direction: str
     status: str
+    has_charts: bool # Does this trade record have a chart screenshot attached to it?
 
     outputs: TradeOutputs
 

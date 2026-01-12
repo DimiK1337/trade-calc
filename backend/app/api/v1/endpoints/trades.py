@@ -2,13 +2,33 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter, Depends, 
+    HTTPException, status,
+    File, UploadFile
+)
+from fastapi.responses import Response
+
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
-from app.crud.trade import create_trade, get_trade_for_user, list_trades_for_user, update_trade_for_user
+from app.core.deps_storage import get_trade_image_store
+
+from app.crud.trade import (
+    create_trade, get_trade_for_user, 
+    list_trades_for_user, update_trade_for_user,
+    list_trades_for_user_with_chart_flag
+)
+
+from app.services.storage.base import TradeImageStore
+from app.services.storage.image_processing import ImageTooLargeError, InvalidImageError, compress_chart_image
+
 from app.models.user import User
-from app.schemas.trade import TradeCreate, TradeDetailOut, TradeSummaryOut, TradeUpdate, TradeInputs, TradeOutputs, TradeJournal
+
+from app.schemas.trade import (
+    TradeCreate, TradeDetailOut, TradeSummaryOut, 
+    TradeUpdate, TradeInputs, TradeOutputs, TradeJournal
+)
 
 router = APIRouter(prefix="/trades", tags=["trades"])
 
@@ -64,6 +84,7 @@ def _to_summary_out(t) -> TradeSummaryOut:
         symbol=t.symbol,
         direction=t.direction,
         status=t.status,
+        has_charts=t.has_charts,
         outputs=TradeOutputs(
             sl_price=t.sl_price,
             tp_price=t.tp_price,
@@ -122,3 +143,60 @@ def patch_my_trade(
     if not trade:
         raise HTTPException(status_code=404, detail="Trade not found")
     return _to_detail_out(trade)
+
+CHART_KIND = "CHART"
+
+@router.post("/{trade_id}/chart", status_code=status.HTTP_204_NO_CONTENT)
+def upload_trade_chart(
+    trade_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    store: TradeImageStore = Depends(get_trade_image_store),
+):
+    trade = get_trade_for_user(db, user_id=current_user.id, trade_id=trade_id)
+    if not trade:
+        raise HTTPException(status_code=404, detail="Trade not found")
+
+    ct = (file.content_type or "").lower()
+    if ct not in {"image/png", "image/jpeg", "image/webp"}:
+        raise HTTPException(status_code=400, detail="Unsupported image type")
+
+    raw = file.file.read()
+
+    try:
+        compressed, mime, _sha = compress_chart_image(raw)
+    except ImageTooLargeError as e:
+        raise HTTPException(status_code=413, detail=str(e))
+    except InvalidImageError:
+        raise HTTPException(status_code=400, detail="Invalid image")
+
+    store.save(trade_id=trade_id, kind=CHART_KIND, data=compressed, mime=mime)
+    return None
+
+
+@router.get("/{trade_id}/chart")
+def get_trade_chart(
+    trade_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    store: TradeImageStore = Depends(get_trade_image_store),
+):
+    trade = get_trade_for_user(db, user_id=current_user.id, trade_id=trade_id)
+    if not trade:
+        raise HTTPException(status_code=404, detail="Trade not found")
+
+    img = store.get(trade_id=trade_id, kind=CHART_KIND)
+    if not img:
+        raise HTTPException(status_code=404, detail="No chart image")
+
+    return Response(
+        content=img.data,
+        media_type=img.mime,
+        headers={
+            "ETag": img.sha256,
+            "Content-Length": str(img.byte_size),
+            "Cache-Control": "private, max-age=0",
+        },
+    )
+

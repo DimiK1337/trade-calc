@@ -58,3 +58,9 @@ class Trade(
     realized_r_multiple: Mapped[float | None] = mapped_column(nullable=True)
 
     user = relationship("User", back_populates="trades")
+    images = relationship(
+        "TradeImage",
+        back_populates="trade",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
