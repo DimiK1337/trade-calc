@@ -2,7 +2,10 @@
 
 from fastapi.testclient import TestClient
 
-from tests.utils.auth import register_user, get_token, auth_headers, login_user_raw, login_user
+from tests.utils.auth import (
+    register_user, login_user,
+    auth_headers, login_user_raw
+)
 
 
 def test_profile_get_requires_auth(client: TestClient):
@@ -13,7 +16,7 @@ def test_profile_get_requires_auth(client: TestClient):
 def test_profile_get_returns_user(client: TestClient):
     register_user(client, "a@example.com", "alice", "test1234")
 
-    token = get_token(client, "a@example.com", "test1234")
+    token = login_user(client, "a@example.com", "test1234")
     me = client.get("/api/v1/profile", headers=auth_headers(token))
     assert me.status_code == 200, me.text
     body = me.json()
@@ -23,7 +26,7 @@ def test_profile_get_returns_user(client: TestClient):
 
 def test_profile_patch_username_success(client: TestClient):
     register_user(client, "a@example.com", "alice", "test1234")
-    token = get_token(client, "a@example.com", "test1234")
+    token = login_user(client, "a@example.com", "test1234")
 
     r = client.patch(
         "/api/v1/profile",
@@ -34,7 +37,7 @@ def test_profile_patch_username_success(client: TestClient):
     assert r.json()["username"] == "alice2"
 
     # login should work with new username too
-    token2 = get_token(client, "alice2", "test1234")
+    token2 = login_user(client, "alice2", "test1234")
     assert isinstance(token2, str) and len(token2) > 10
 
 
@@ -42,7 +45,7 @@ def test_profile_patch_username_duplicate_fails(client: TestClient):
     register_user(client, "a@example.com", "alice", "test1234")
     register_user(client, "b@example.com", "bob", "test1234")
 
-    token = get_token(client, "a@example.com", "test1234")
+    token = login_user(client, "a@example.com", "test1234")
     r = client.patch(
         "/api/v1/profile",
         json={"username": "bob"},
@@ -53,7 +56,7 @@ def test_profile_patch_username_duplicate_fails(client: TestClient):
 
 def test_profile_patch_email_requires_password(client: TestClient):
     register_user(client, "a@example.com", "alice", "test1234")
-    token = get_token(client, "a@example.com", "test1234")
+    token = login_user(client, "a@example.com", "test1234")
 
     r = client.patch(
         "/api/v1/profile",
@@ -65,7 +68,7 @@ def test_profile_patch_email_requires_password(client: TestClient):
 
 def test_profile_patch_email_success_with_password(client: TestClient):
     register_user(client, "a@example.com", "alice", "test1234")
-    token = get_token(client, "a@example.com", "test1234")
+    token = login_user(client, "a@example.com", "test1234")
 
     r = client.patch(
         "/api/v1/profile",
@@ -76,13 +79,13 @@ def test_profile_patch_email_success_with_password(client: TestClient):
     assert r.json()["email"] == "new@example.com"
 
     # login should work with new email
-    token2 = get_token(client, "new@example.com", "test1234")
+    token2 = login_user(client, "new@example.com", "test1234")
     assert isinstance(token2, str) and len(token2) > 10
 
 
 def test_profile_change_password_success(client: TestClient):
     register_user(client, "a@example.com", "alice", "test1234")
-    token = get_token(client, "a@example.com", "test1234")
+    token = login_user(client, "a@example.com", "test1234")
 
     r = client.post(
         "/api/v1/profile/password",
@@ -96,13 +99,13 @@ def test_profile_change_password_success(client: TestClient):
     assert bad.status_code == 401, bad.text
 
     # new password works
-    token2 = get_token(client, "a@example.com", "newpass123")
+    token2 = login_user(client, "a@example.com", "newpass123")
     assert isinstance(token2, str) and len(token2) > 10
 
 
 def test_profile_delete_account(client: TestClient):
     register_user(client, "a@example.com", "alice", "test1234")
-    token = get_token(client, "a@example.com", "test1234")
+    token = login_user(client, "a@example.com", "test1234")
 
     r = client.request(
         "DELETE",

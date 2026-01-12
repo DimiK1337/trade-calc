@@ -32,10 +32,5 @@ def login_user(client: TestClient, identifier: str, password: str) -> str:
     return r.json()["access_token"]
 
 
-def get_token(client: TestClient, identifier: str, password: str) -> str:
-    # Alias for readability
-    return login_user(client, identifier=identifier, password=password)
-
-
 def auth_headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
